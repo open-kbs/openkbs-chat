@@ -1,0 +1,21 @@
+{
+  "name": "openkbs-chat",
+  "version": "0.0.1",
+  "description": "OpenKBS - Chat Server",
+  "main": "index.js",
+  "scripts": {
+  },
+  "bin": {
+    "openkbs": "./index.js"
+  },
+
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+
+  },
+  "devDependencies": {
+
+  }
+}
