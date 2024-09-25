@@ -11,13 +11,28 @@ const red = "\x1b[31m";
 const yellow = "\x1b[33m";
 const green = "\x1b[32m";
 
+// Wrap figlet in a promise
+const generateAsciiArt = async (text, figlet) => {
+    return new Promise((resolve, reject) => {
+        figlet(text, (err, data) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(data);
+            }
+        });
+    });
+};
+
 console.red = (data) =>  console.log(`${red}${data}${reset}`)
 console.green = (data) =>  console.log(`${green}${bold}${data}${reset}`)
 console.yellow = (data) =>  console.log(`${yellow}${bold}${data}${reset}`)
 
 // ... (keep your console color functions and other utility functions as they are)
 
-const CreateTables = async () => {
+const CreateLocalStackInfra = async () => {
+    console.log('Create local infra')
+
     const dynamodb = new DynamoDBClient({
         region: 'us-east-1',
         endpoint: 'http://localhost:4566'
@@ -191,9 +206,7 @@ const CreateTables = async () => {
         await s3Client.send(new PutBucketPolicyCommand(policyParams));
 
         const buckets = await s3Client.send(new ListBucketsCommand({}));
-
-        console.log('Buckets created and configured successfully in LocalStack')
-        console.log(buckets)
+        console.log('Buckets created and configured successfully')
 
     } catch (error) {
         console.log(error)
@@ -227,7 +240,7 @@ function isLocalstackRunning() {
 
 function printInstallationInstructions() {
     console.red('LocalStack is not installed.\n');
-    console.red('To enable cloud features, please install LocalStack by following the instructions for your operating system:\n');
+    console.red('Please install LocalStack by following the instructions for your operating system and try again:\n');
 
     const platform = os.platform();
     if (platform === 'linux') {
@@ -236,19 +249,19 @@ function printInstallationInstructions() {
         console.green('curl --output localstack-cli-3.7.2-linux-amd64-onefile.tar.gz \\');
         console.green('    --location https://github.com/localstack/localstack-cli/releases/download/v3.7.2/localstack-cli-3.7.2-linux-amd64-onefile.tar.gz');
         console.green('sudo tar xvzf localstack-cli-3.7.2-linux-*-onefile.tar.gz -C /usr/local/bin');
-        console.green(`sudo localstack start -d`)
+        console.green(`sudo PERSISTENCE=1 localstack start -d`)
         console.green('```');
     } else if (platform === 'darwin') {
         console.green('**For macOS:**\n');
         console.green('```');
         console.green('brew install localstack/tap/localstack-cli');
-        console.green(`sudo localstack start -d`)
+        console.green(`sudo PERSISTENCE=1 localstack start -d`)
         console.green('```');
     } else if (platform === 'win32') {
         console.green('**For Windows:**\n');
         console.green('Please download and install from the following URL:');
         console.green('https://github.com/localstack/localstack-cli/releases/download/v3.7.2/localstack-cli-3.7.2-windows-amd64-onefile.zip');
-        console.green(`sudo localstack start -d`)
+        console.green(`sudo PERSISTENCE=1 localstack start -d`)
     } else {
         console.log('Unsupported OS. Please refer to the LocalStack installation documentation.');
     }
@@ -257,19 +270,26 @@ function printInstallationInstructions() {
 }
 
 async function main() {
+    const figlet = (await import('figlet')).default;
+    const chalk = (await import('chalk')).default;
+
     if (!isLocalstackInstalled()) {
         printInstallationInstructions();
-        console.log('\nContinuing without LocalStack...\n');
-        return;
+        // console.log('\nContinuing without LocalStack...\n');
+        process.exit(-1)
     }
 
     const running = await isLocalstackRunning();
     if (running) {
-        await CreateTables();
-        console.green('LocalStack is running!\n');
+        await CreateLocalStackInfra();
+        console.green('\n');
+        const asciiArt = await generateAsciiArt('OpenKBS', figlet);
+        console.log(chalk.blue(asciiArt));
+        console.green('\n💻 OpenKBS Chat On-Premises');
     } else {
-        console.red('LocalStack is NOT running. Please start it using\n\n');
-        console.green('sudo localstack start -d')
+        console.red('LocalStack is NOT running, start it and try again.\n\n');
+        console.green('sudo PERSISTENCE=1 localstack start -d')
+        process.exit(-1)
     }
 }
 
