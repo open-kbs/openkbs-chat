@@ -286,7 +286,7 @@ async function main() {
         const asciiArt = await generateAsciiArt('OpenKBS', figlet);
         console.log(chalk.blue(asciiArt));
         console.log(chalk.blue('                              On-premises'));
-        console.green('\n💻 OpenKBS On-Premises Chat')
+        console.green('\n💻 OpenKBS On-Premises Chat Server')
     } else {
         console.red('LocalStack is NOT running, start it and try again.\n\n');
         console.green('sudo PERSISTENCE=1 localstack start -d')
