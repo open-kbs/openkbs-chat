@@ -844,7 +844,7 @@ export async function executeHandler(userCode, event, kbData, AESKey) {
     const AESKeyEncrypted = encryptSecret(AESKey);
 
     try {
-        const response = await axios.post(`https://localhost:38595`, {
+        const response = await axios.post(`http://localhost:38595`, {
             // transactionJWT,
             // chatJWT: signChatJWT({ userHaveFunds: !!haveFunds }),
             userCode: userCode,
