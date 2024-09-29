@@ -857,6 +857,7 @@ export async function executeHandler(userCode, event, kbData, AESKey) {
 
         return response.data;
     } catch (error) {
+        if (error?.response?.data?.error) throw new Error(error?.response?.data?.error);
         console.error("Error calling external function:", error.message);
         throw new Error("Failed to call external function: " + error.message);
     }
