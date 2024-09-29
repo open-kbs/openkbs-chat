@@ -9,7 +9,7 @@
     "prod:start": "pm2 start index.mjs --name openkbs-chat --watch",
     "prod:stop": "pm2 stop openkbs-chat",
     "prod:restart": "pm2 restart openkbs-chat",
-    "prod:log": "pm2 logs openkbs-chat",
+    "log": "pm2 logs openkbs-chat",
     "preprod": "node run-localstack.js",
     "prestart": "node run-localstack.js",
     "predev": "node run-localstack.js"
@@ -34,10 +34,10 @@
     "figlet": "^1.7.0",
     "jsonwebtoken": "^9.0.2",
     "node-rsa": "^1.1.1",
-    "openai-gpt-token-counter": "1.0.3",
-    "pm2": "^5.4.2"
+    "openai-gpt-token-counter": "1.0.3"
   },
   "devDependencies": {
-    "nodemon": "^3.1.7"
+    "nodemon": "^3.1.7",
+    "pm2": "^5.4.2"
   }
 }
