@@ -6,13 +6,14 @@
   "scripts": {
     "dev": "nodemon index.mjs",
     "start": "node index.mjs",
-    "prod:start": "pm2 start index.mjs --name openkbs-chat --watch",
+    "prod": "pm2 start index.mjs --name openkbs-chat --watch",
+    "prod:create": "AWS_CREATE_INFRA=1 node infra.js",
     "prod:stop": "pm2 stop openkbs-chat",
     "prod:restart": "pm2 restart openkbs-chat",
     "log": "pm2 logs openkbs-chat",
-    "preprod": "node run-localstack.js",
-    "prestart": "node run-localstack.js",
-    "predev": "node run-localstack.js"
+    "preprod": "AWS_REQUIRED=1 node infra.js",
+    "prestart": "LOCAL_STACK_REQUIRED=1 node infra.js",
+    "predev": "LOCAL_STACK_REQUIRED=1 node infra.js"
   },
   "keywords": [],
   "author": "",

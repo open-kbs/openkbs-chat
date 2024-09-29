@@ -30,12 +30,12 @@ console.yellow = (data) =>  console.log(`${yellow}${bold}${data}${reset}`)
 
 // ... (keep your console color functions and other utility functions as they are)
 
-const CreateLocalStackInfra = async () => {
+const CreateInfra = async (endpoint) => {
     console.log('Create local infra')
 
     const dynamodb = new DynamoDBClient({
         region: 'us-east-1',
-        endpoint: 'http://localhost:4566'
+        endpoint
     });
 
     try {
@@ -273,24 +273,34 @@ async function main() {
     const figlet = (await import('figlet')).default;
     const chalk = (await import('chalk')).default;
 
-    if (!isLocalstackInstalled()) {
-        printInstallationInstructions();
-        // console.log('\nContinuing without LocalStack...\n');
-        process.exit(-1)
-    }
-
-    const running = await isLocalstackRunning();
-    if (running) {
-        await CreateLocalStackInfra();
+    const printRunning = async (title = 'On-Premises') => {
         console.green('\n');
         const asciiArt = await generateAsciiArt('OpenKBS', figlet);
         console.log(chalk.blue(asciiArt));
-        console.log(chalk.blue('                              On-premises'));
-        console.green('\n💻 OpenKBS On-Premises Chat Server')
-    } else {
-        console.red('LocalStack is NOT running, start it and try again.\n\n');
-        console.green('sudo PERSISTENCE=1 localstack start -d')
-        process.exit(-1)
+        console.log(chalk.blue(`                              ${title}`));
+        console.green(`\n💻 OpenKBS ${title} Chat Server`)
+    }
+
+    if (process.env.LOCAL_STACK_REQUIRED) {
+        if (!isLocalstackInstalled()) {
+            printInstallationInstructions();
+            // console.log('\nContinuing without LocalStack...\n');
+            process.exit(-1)
+        }
+
+        const running = await isLocalstackRunning();
+        if (running) {
+            await CreateInfra('http://localhost:4566');
+            await printRunning('LocalStack');
+        } else {
+            console.red('LocalStack is NOT running, start it and try again.\n\n');
+            console.green('sudo PERSISTENCE=1 localstack start -d')
+            process.exit(-1)
+        }
+    } else if (process.env.AWS_REQUIRED) {
+        await printRunning('On-Premises');
+    } else if (process.env.AWS_CREATE_INFRA) {
+        await CreateInfra(undefined);
     }
 }
 
