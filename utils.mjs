@@ -841,16 +841,18 @@ export function sortAndConcatenateMessages(messages) {
 }
 
 export async function executeHandler(userCode, event, kbData, AESKey) {
-    const AESKeyEncrypted = encryptSecret(AESKey);
+    const walletPrivateKey = kbData?.walletPrivateKey;
+    const walletPublicKey = kbData?.walletPublicKey;
+    const accountId = kbData?.accountId;
 
     try {
         const response = await axios.post(`http://localhost:38595`, {
-            // transactionJWT,
-            // chatJWT: signChatJWT({ userHaveFunds: !!haveFunds }),
-            userCode: userCode,
-            AESKey: AESKeyEncrypted,
-            secrets: kbData?.secrets,
-            event: event
+            walletPrivateKey,
+            walletPublicKey,
+            accountId,
+            userCode,
+            AESKey,
+            event
         });
 
         return response.data;
@@ -1435,7 +1437,7 @@ function convertMessagesToLlamaPrompt(messages) {
         }
     });
     prompt += '<|start_header_id|>assistant<|end_header_id|>\n\n';
-    console.log('prompt', prompt)
+    // console.log('prompt', prompt)
     return prompt;
 }
 
