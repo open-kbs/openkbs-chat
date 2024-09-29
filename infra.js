@@ -277,8 +277,7 @@ async function main() {
         console.green('\n');
         const asciiArt = await generateAsciiArt('OpenKBS', figlet);
         console.log(chalk.blue(asciiArt));
-        console.log(chalk.blue(`                              ${title}`));
-        console.green(`\n💻 OpenKBS ${title} Chat Server`)
+        console.log(chalk.blue(`                  Chat Server ${title}`));
     }
 
     if (process.env.LOCAL_STACK_REQUIRED) {
