@@ -17,8 +17,8 @@
     "set": "node setEnvVar.js"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "OpenKBS",
+  "license": "MIT",
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.621.0",
     "@aws-sdk/client-dynamodb": "^3.658.0",
