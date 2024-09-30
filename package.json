@@ -13,7 +13,8 @@
     "log": "pm2 logs openkbs-chat",
     "preprod": "AWS_REQUIRED=1 node infra.js",
     "prestart": "LOCAL_STACK_REQUIRED=1 node infra.js",
-    "predev": "LOCAL_STACK_REQUIRED=1 node infra.js"
+    "predev": "LOCAL_STACK_REQUIRED=1 node infra.js",
+    "set": "node setEnvVar.js"
   },
   "keywords": [],
   "author": "",
