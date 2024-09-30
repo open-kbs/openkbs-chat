@@ -985,21 +985,32 @@ export const getChatMessages = async ({ chatId, kbId, myUserId, limit, lastEvalu
     }
 };
 
-export const deleteChat = async ({kbId, chatId}) => {
-    // First, delete the chat entry from the openkb-kb-chats table
+export const deleteChat = async ({ kbId, chatId }) => {
+    const getChatParams = {
+        TableName: 'openkb-kb-chats',
+        Key: { kbId, chatId },
+    };
+
+    const chat = await dynamodb.get(getChatParams).promise();
+
     const deleteChatParams = {
         TableName: 'openkb-kb-chats',
-        Key: {
-            kbId,
-            chatId,
-        },
+        Key: { kbId, chatId },
     };
+
     await dynamodb.delete(deleteChatParams).promise();
 
-    // Then, find and delete all associated messages from the openkb-chat-messages table
+    const event = {
+        eventName: 'REMOVE',
+        OldImage: chat.Item,
+        tableName: 'openkb-kb-chats',
+    };
+
+    await sendToAllConnections(kbId, event);
+
     await deleteAllMessagesForChat(chatId);
 
-    return { chatId }
+    return { chatId };
 };
 
 // OK
@@ -1083,9 +1094,18 @@ export const updateChat = async ({ kbId, chatId, title, chatInstructions, chatIc
         Key: { kbId, chatId },
         UpdateExpression: updateExpression,
         ExpressionAttributeValues: expressionAttributeValues,
+        ReturnValues: 'ALL_NEW',
     };
 
-    await dynamodb.update(params).promise();
+    const result = await dynamodb.update(params).promise();
+
+    const event = {
+        eventName: 'MODIFY',
+        NewImage: result.Attributes,
+        tableName: 'openkb-kb-chats',
+    };
+
+    await sendToAllConnections(kbId, event);
 };
 
 // OK
@@ -1111,6 +1131,14 @@ export const chatAddMessages = async ({ chatId, messages, kbId, kbDataLoadedBefo
                     Item: { chatId, msgId, kbId, ...message },
                 };
                 await dynamodb.put(messageParams).promise();
+
+                const event = {
+                    eventName: 'INSERT',
+                    NewImage: messageParams.Item,
+                    tableName: 'openkb-chat-messages',
+                };
+
+                await sendToAllConnections(kbId, event);
             }));
         }
     } catch (e) {
@@ -1118,7 +1146,8 @@ export const chatAddMessages = async ({ chatId, messages, kbId, kbDataLoadedBefo
     }
 
     return messagesToAdd;
-}
+};
+
 
 function base64Encode(value) {
     return Buffer.from(value).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
@@ -1139,11 +1168,20 @@ export async function chatMessageAddReaction({ kbId, chatId, msgId, userId, emoj
             ':kbIdVal': kbId,
         },
         ConditionExpression: 'kbId = :kbIdVal',
-        ReturnValues: 'UPDATED_NEW',
+        ReturnValues: 'ALL_NEW',
     };
 
     try {
         const data = await dynamodb.update(params).promise();
+
+        const event = {
+            eventName: 'MODIFY',
+            NewImage: data.Attributes,
+            tableName: 'openkb-chat-messages',
+        };
+
+        await sendToAllConnections(kbId, event);
+
         return { success: true, data: data };
     } catch (error) {
         console.error('Unable to add reaction. Error JSON:', JSON.stringify(error, null, 2));
@@ -1153,6 +1191,7 @@ export async function chatMessageAddReaction({ kbId, chatId, msgId, userId, emoj
         throw new Error('Unable to add reaction');
     }
 }
+
 
 export async function chatMessageRemoveReaction({ kbId, chatId, msgId, userId, emojiId }) {
     const reactionKey = base64Encode(`${userId}###${emojiId}`);
@@ -1169,11 +1208,20 @@ export async function chatMessageRemoveReaction({ kbId, chatId, msgId, userId, e
             ':kbIdVal': kbId,
         },
         ConditionExpression: 'kbId = :kbIdVal',
-        ReturnValues: 'UPDATED_NEW',
+        ReturnValues: 'ALL_NEW',
     };
 
     try {
         const data = await dynamodb.update(params).promise();
+
+        const event = {
+            eventName: 'MODIFY',
+            NewImage: data.Attributes,
+            tableName: 'openkb-chat-messages',
+        };
+
+        await sendToAllConnections(kbId, event);
+
         return { success: true, data: data };
     } catch (error) {
         console.error('Unable to remove reaction. Error JSON:', JSON.stringify(error, null, 2));
@@ -1199,11 +1247,20 @@ export async function chatEditMessage({ kbId, chatId, msgId, content }) {
             ':kbIdVal': kbId,
         },
         ConditionExpression: 'kbId = :kbIdVal',
-        ReturnValues: 'UPDATED_NEW',
+        ReturnValues: 'ALL_NEW',
     };
 
     try {
         const data = await dynamodb.update(params).promise();
+
+        const event = {
+            eventName: 'MODIFY',
+            NewImage: data.Attributes,
+            tableName: 'openkb-chat-messages',
+        };
+
+        await sendToAllConnections(kbId, event);
+
         return { success: true, data: data };
     } catch (error) {
         console.error('Unable to edit message. Error JSON:', JSON.stringify(error, null, 2));
@@ -1214,7 +1271,15 @@ export async function chatEditMessage({ kbId, chatId, msgId, content }) {
     }
 }
 
-export const chatDeleteMessage = async ({chatId, msgId, kbId}) => {
+
+export const chatDeleteMessage = async ({ chatId, msgId, kbId }) => {
+    const getMessageParams = {
+        TableName: 'openkb-chat-messages',
+        Key: { chatId, msgId },
+    };
+
+    const message = await dynamodb.get(getMessageParams).promise();
+
     const deleteParams = {
         TableName: 'openkb-chat-messages',
         Key: {
@@ -1229,16 +1294,22 @@ export const chatDeleteMessage = async ({chatId, msgId, kbId}) => {
 
     try {
         await dynamodb.delete(deleteParams).promise();
+
+        const event = {
+            eventName: 'REMOVE',
+            OldImage: message.Item,
+            tableName: 'openkb-chat-messages',
+        };
+
+        await sendToAllConnections(kbId, event);
     } catch (error) {
         if (error.code === 'ConditionalCheckFailedException') {
-            // Handle the case where the condition is not met
-            // throw new Error('Message not found or kbId mismatch');
-            console.error('Message not found or kbId mismatch')
+            console.error('Message not found or kbId mismatch');
         } else {
             throw error;
         }
     }
-}
+};
 
 const generateMsgId = () => `${+new Date()}-${Math.floor(100000 + Math.random() * 900000)}`
 const generateChatId = () => `${+new Date()}-${Math.floor(100000 + Math.random() * 900000)}`
@@ -1252,13 +1323,19 @@ export const createChat = async ({ kbId, title, messages, chatId }) => {
             title,
             updatedAt: Date.now(),
         },
-        ConditionExpression: 'attribute_not_exists(chatId)'
+        ConditionExpression: 'attribute_not_exists(chatId)',
     };
 
-    // Insert the chat information into the chats table
     await dynamodb.put(chatParams).promise();
 
-    // Insert each message into the chat-messages table
+    const event = {
+        eventName: 'INSERT',
+        NewImage: chatParams.Item,
+        tableName: 'openkb-kb-chats',
+    };
+
+    await sendToAllConnections(kbId, event);
+
     await Promise.all(messages.map(async (message) => {
         const msgId = message.msgId || generateMsgId();
         const messageParams = {
@@ -1266,6 +1343,14 @@ export const createChat = async ({ kbId, title, messages, chatId }) => {
             Item: { chatId, msgId, kbId, ...message },
         };
         await dynamodb.put(messageParams).promise();
+
+        const messageEvent = {
+            eventName: 'INSERT',
+            NewImage: messageParams.Item,
+            tableName: 'openkb-chat-messages',
+        };
+
+        await sendToAllConnections(kbId, messageEvent);
     }));
 
     return { chatId };
@@ -1626,6 +1711,18 @@ export const getItemsAsString = async ({searchResults, kbId, filteredInjectedIte
 }
 
 export const connections = {};
+
+export function sendToAllConnections(kbId, event) {
+    if (connections[kbId]) {
+        for (const wsId in connections[kbId]) {
+            if (connections[kbId].hasOwnProperty(wsId)) {
+                const connection = connections[kbId][wsId];
+                connection.ws.send(JSON.stringify(event));
+            }
+        }
+    }
+}
+
 export const runDevServer = (handler, wsHandler) => {
     const app = express();
     app.use(express.json());
