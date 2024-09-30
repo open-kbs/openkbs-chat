@@ -343,4 +343,9 @@ async function handleDefault(event, res) {
     }
 }
 
-runDevServer(handleDefault)
+
+async function wsHandler(message, ws) {
+
+}
+
+runDevServer(handleDefault, wsHandler)

@@ -14,6 +14,8 @@ import { readFileSync } from 'fs';
 import { resolve, join } from 'path';
 import { homedir } from 'os';
 import bs58 from 'bs58';
+import url from 'url';
+import WebSocket, { WebSocketServer } from 'ws';
 
 const s3Client = new S3Client({
     region: 'us-east-1',
@@ -1623,7 +1625,8 @@ export const getItemsAsString = async ({searchResults, kbId, filteredInjectedIte
     return itemsData.map(item => `\n\n###\n\nContent:\n${item.body}`).join('\n');
 }
 
-export const runDevServer = (handler) => {
+export const connections = {};
+export const runDevServer = (handler, wsHandler) => {
     const app = express();
     app.use(express.json());
 
@@ -1640,7 +1643,7 @@ export const runDevServer = (handler) => {
 
     // Checkup route
     app.get('/checkup', (req, res) => {
-        res.status(200).send({msg: 'Server is up and running'});
+        res.status(200).send({ msg: 'Server is up and running' });
     });
 
     app.get('/', (req, res) => {
@@ -1651,5 +1654,46 @@ export const runDevServer = (handler) => {
         handler({ queryStringParameters: req.query, body: JSON.stringify(req.body) }, res);
     });
 
-    app.listen(38594, () => console.log('Server listening on port 38594'));
+    // Create HTTP server
+    const server = http.createServer(app);
+
+    // WebSocket server
+    const wss = new WebSocketServer({ server });
+
+    wss.on('connection', async (ws, req) => {
+        try {
+            // Open new connection
+            const token = url.parse(req.url, true)?.query?.token;
+
+            const {kbUserId, myUserId, kbId} = await verifyToken(token);
+
+            if (!kbUserId || !myUserId || !kbId) return null;
+
+            if (!connections[kbId]) connections[kbId] = {};
+
+            ws.kbId = kbId
+            ws.wsId = generateMsgId()
+            connections[kbId][ws.wsId] = { ws, kbUserId, kbId, myUserId }
+        } catch (e) {
+            console.log(e)
+            return;
+        }
+
+        ws.on('message', (message) => {
+            wsHandler(message, ws);
+        });
+
+        ws.on('close', () => {
+            if (connections[ws.kbId] && connections[ws.kbId][ws.wsId]) {
+                delete connections[ws.kbId][ws.wsId];
+                if (Object.keys(connections[ws.kbId]).length === 0) {
+                    delete connections[ws.kbId];
+                }
+            }
+        });
+
+        // ws.send('WebSocket connection established');
+    });
+
+    server.listen(38594, () => console.log('Server listening on port 38594'));
 }

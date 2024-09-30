@@ -35,7 +35,8 @@
     "figlet": "^1.7.0",
     "jsonwebtoken": "^9.0.2",
     "node-rsa": "^1.1.1",
-    "openai-gpt-token-counter": "1.0.3"
+    "openai-gpt-token-counter": "1.0.3",
+    "ws": "^8.18.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.7",
