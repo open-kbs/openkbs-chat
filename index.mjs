@@ -336,9 +336,7 @@ async function handleDefault(event, res) {
             (err) => {
                 console.error(err)
             }, // on_error
-            () => {
-                console.log('Connection closed')
-            } // on_close
+            () => {} // on_close
         );
     } catch (error) {
         console.error('An error occurred during the chat stream:', error);
