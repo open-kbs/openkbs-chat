@@ -333,8 +333,15 @@ async function handleDefault(event, res) {
                 await send(res, {done: count.id});
                 res.end();
             },
-            () => {}, // on_error
-            () => {} // on_close
+            (err) => {
+                console.error(err)
+            }, // on_error
+            () => {
+                if (!(process.env.OPENAI_KEY?.length > 8)) console.log('missing OPENAI_KEY')
+                console.log('Connection closed', process.env.OPENAI_KEY)
+
+
+            } // on_close
         );
     } catch (error) {
         console.error('An error occurred during the chat stream:', error);

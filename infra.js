@@ -273,11 +273,11 @@ async function main() {
     const figlet = (await import('figlet')).default;
     const chalk = (await import('chalk')).default;
 
-    const printRunning = async (title = 'On-Premises') => {
+    const printRunning = async () => {
         console.green('\n');
         const asciiArt = await generateAsciiArt('OpenKBS', figlet);
         console.log(chalk.blue(asciiArt));
-        console.log(chalk.blue(`                  Chat Server ${title}`));
+        console.log(chalk.blue(`                             Chat Server`));
     }
 
     if (process.env.LOCAL_STACK_REQUIRED) {
@@ -290,14 +290,14 @@ async function main() {
         const running = await isLocalstackRunning();
         if (running) {
             await CreateInfra('http://localhost:4566');
-            await printRunning('LocalStack');
+            await printRunning();
         } else {
             console.red('LocalStack is NOT running, start it and try again.\n\n');
             console.green('sudo PERSISTENCE=1 localstack start -d')
             process.exit(-1)
         }
     } else if (process.env.AWS_REQUIRED) {
-        await printRunning('On-Premises');
+        await printRunning();
     } else if (process.env.AWS_CREATE_INFRA) {
         await CreateInfra(undefined);
     }

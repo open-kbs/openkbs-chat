@@ -25,6 +25,12 @@ const s3Client = new S3Client({
     forcePathStyle: true // Required for LocalStack
 });
 
+const reset = "\x1b[0m";
+const bold = "\x1b[1m";
+const red = "\x1b[31m";
+const yellow = "\x1b[33m";
+const green = "\x1b[32m";
+
 async function ensureOpenAIKey() {
     const envFilePath = resolve(join(homedir(), '.openkbs', '.env'));
 
@@ -45,7 +51,7 @@ async function ensureOpenAIKey() {
         });
 
         const openAIKey = await new Promise(resolve => {
-            rl.question('\nEnter your OPENAI_KEY: ', resolve);
+            rl.question(`\n${green}Enter your OPENAI_KEY: ${reset}`, resolve);
         });
 
         rl.close();
