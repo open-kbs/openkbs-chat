@@ -337,10 +337,7 @@ async function handleDefault(event, res) {
                 console.error(err)
             }, // on_error
             () => {
-                if (!(process.env.OPENAI_KEY?.length > 8)) console.log('missing OPENAI_KEY')
-                console.log('Connection closed', process.env.OPENAI_KEY)
-
-
+                console.log('Connection closed')
             } // on_close
         );
     } catch (error) {
