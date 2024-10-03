@@ -267,7 +267,8 @@ export const loadChatModels = () => {
             vision: {
                 type: 'image_url'
             },
-            context: 128000
+            context: 128000,
+            isOnPremises: true
         },
 
         "o1": {
@@ -277,7 +278,8 @@ export const loadChatModels = () => {
             vendor: 'openai',
             name: 'OpenAI o1',
             size: 'Large',
-            context: 128000
+            context: 128000,
+            isOnPremises: true
         },
 
         "o1-mini": {
@@ -287,7 +289,8 @@ export const loadChatModels = () => {
             vendor: 'openai',
             name: 'OpenAI o1-mini',
             size: 'Medium',
-            context: 128000
+            context: 128000,
+            isOnPremises: true
         },
         "gpt-4o-mini": {
             default: false,
@@ -300,7 +303,8 @@ export const loadChatModels = () => {
                 type: 'image_url'
             },
 
-            context: 128000
+            context: 128000,
+            isOnPremises: true
         },
 
         "gpt-4-turbo": {
@@ -309,7 +313,8 @@ export const loadChatModels = () => {
             vendor: 'openai',
             name: 'GPT 4 Turbo',
             size: 'Large',
-            context: 128000
+            context: 128000,
+            isOnPremises: true
         },
 
         "gpt-3.5-turbo": {
@@ -318,8 +323,8 @@ export const loadChatModels = () => {
             vendor: 'openai',
             name: 'GPT 3.5 Turbo',
             size: 'Medium',
-
-            context: 16000
+            context: 16000,
+            isOnPremises: true
         },
 
         // Anthropic
@@ -328,7 +333,8 @@ export const loadChatModels = () => {
             vendor: 'bedrock',
             name: "Claude 3.5 Sonnet",
             size: 'Large',
-            context: 200000
+            context: 200000,
+            isOnPremises: true
         },
 
         "anthropic.claude-3-opus-20240229-v1:0": {
@@ -336,7 +342,8 @@ export const loadChatModels = () => {
             vendor: 'bedrock',
             name: "Claude 3 Opus",
             size: 'Large',
-            context: 200000
+            context: 200000,
+            isOnPremises: true
         },
 
         "anthropic.claude-3-sonnet-20240229-v1:0": {
@@ -350,7 +357,8 @@ export const loadChatModels = () => {
             vendor: 'bedrock',
             name: "Claude 3 Haiku",
             size: 'Small',
-            context: 200000
+            context: 200000,
+            isOnPremises: true
         },
 
 
@@ -360,21 +368,24 @@ export const loadChatModels = () => {
             vendor: 'bedrock',
             name: 'Mistral Large',
             size: 'Large',
-            context: 32000
+            context: 32000,
+            isOnPremises: true
         },
         "mistral.mixtral-8x7b-instruct-v0:1": {
             frontendTokenLimit: 30000,
             vendor: 'bedrock',
             name: 'Mixtral-8x7b',
             size: 'Medium',
-            context: 32000
+            context: 32000,
+            isOnPremises: true
         },
         "mistral.mistral-7b-instruct-v0:2": {
             frontendTokenLimit: 30000,
             vendor: 'bedrock',
             name: 'Mistral 7b',
             size: 'Small',
-            context: 32000
+            context: 32000,
+            isOnPremises: true
         },
 
         // Meta
@@ -383,28 +394,32 @@ export const loadChatModels = () => {
             vendor: 'bedrock',
             name: 'Llama 3 70B',
             size: 'Medium',
-            context: 8000
+            context: 8000,
+            isOnPremises: true
         },
         "meta.llama3-8b-instruct-v1:0": {
             frontendTokenLimit: 7500,
             vendor: 'bedrock',
             name: 'Llama 3 8B',
             size: 'Small',
-            context: 8000
+            context: 8000,
+            isOnPremises: true
         },
         "meta.llama3-1-405b-instruct-v1:0": {
             frontendTokenLimit: 120000,
             vendor: 'bedrock',
             name: 'Llama 3.1 405B',
             size: 'Large',
-            context: 120000
+            context: 120000,
+            isOnPremises: true
         },
         "meta.llama3-1-70b-instruct-v1:0": {
             frontendTokenLimit: 120000,
             vendor: 'bedrock',
             name: 'Llama 3.1 70B',
             size: 'Medium',
-            context: 120000
+            context: 120000,
+            isOnPremises: true
         }
     }
 
