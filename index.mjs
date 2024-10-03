@@ -33,7 +33,7 @@ import {
     sha256,
     APIKeyPermissions,
     encryptMessages,
-    getChat, ChatModels, createAPIKey, getAPIKeys, deleteAPIKey
+    getChat, ChatModels, createAPIKey, getAPIKeys, deleteAPIKey, loadEnv
 } from "./utils.mjs";
 
 async function handleDefault(event, res) {
@@ -348,4 +348,9 @@ async function wsHandler(message, ws) {
 
 }
 
-runDevServer(handleDefault, wsHandler)
+(async () => {
+    await loadEnv();
+    runDevServer(handleDefault, wsHandler)
+})();
+
+

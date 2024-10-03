@@ -16,6 +16,8 @@ import { homedir } from 'os';
 import bs58 from 'bs58';
 import url from 'url';
 import WebSocket, { WebSocketServer } from 'ws';
+import { promises as fs } from 'fs';
+import readline from 'readline';
 
 const s3Client = new S3Client({
     region: 'us-east-1',
@@ -23,7 +25,44 @@ const s3Client = new S3Client({
     forcePathStyle: true // Required for LocalStack
 });
 
-function loadEnv() {
+async function ensureOpenAIKey() {
+    const envFilePath = resolve(join(homedir(), '.openkbs', '.env'));
+
+    let envContent = '';
+    try {
+        envContent = await fs.readFile(envFilePath, 'utf-8');
+    } catch (error) {
+        // File does not exist, proceed to create it
+    }
+
+    const envLines = envContent.split('\n');
+    const openAIKeyLine = envLines.find(line => line.startsWith('OPENAI_KEY='));
+
+    if (!openAIKeyLine) {
+        const rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout
+        });
+
+        const openAIKey = await new Promise(resolve => {
+            rl.question('\nEnter your OPENAI_KEY: ', resolve);
+        });
+
+        rl.close();
+
+        if (!envContent.endsWith('\n') && envContent.length > 0) {
+            envContent += '\n';
+        }
+        envContent += `OPENAI_KEY=${openAIKey}\n`;
+
+        await fs.mkdir(resolve(join(homedir(), '.openkbs')), { recursive: true });
+        await fs.writeFile(envFilePath, envContent, 'utf-8');
+    }
+}
+
+export async function loadEnv() {
+    await ensureOpenAIKey();
+
     const envFilePath = resolve(join(homedir(), '.openkbs', '.env'));
 
     try {
@@ -58,8 +97,6 @@ function loadOnPremisesChatModels() {
 }
 
 const loadedOnPremisesChatModels = loadOnPremisesChatModels();
-
-loadEnv()
 
 import {
     BedrockRuntimeClient, InvokeModelWithResponseStreamCommand,
