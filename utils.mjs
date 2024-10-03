@@ -102,8 +102,6 @@ function loadOnPremisesChatModels() {
     }
 }
 
-const loadedOnPremisesChatModels = loadOnPremisesChatModels();
-
 import {
     BedrockRuntimeClient, InvokeModelWithResponseStreamCommand,
 } from "@aws-sdk/client-bedrock-runtime";
@@ -252,157 +250,176 @@ QQIDAQAB
     const encrypted = crypto.publicEncrypt(publicKey, buffer);
     return encrypted.toString('base64');
 }
+export let ChatModels = {};
 
-export const ChatModels = loadedOnPremisesChatModels || {
-    // OpenAI
-    "gpt-4o": {
-        default: true,
-        frontendTokenLimit: 120000,
-        searchLimit: 20000,
-        vendor: 'openai',
-        name: 'GPT 4 Omni',
-        size: 'Large',
-        vision: {
-            type: 'image_url'
-        },
-        context: 128000
-    },
-
-    "o1": {
-        default: false,
-        frontendTokenLimit: 120000,
-        searchLimit: 20000,
-        vendor: 'openai',
-        name: 'OpenAI o1',
-        size: 'Large',
-        context: 128000
-    },
-
-    "o1-mini": {
-        default: false,
-        frontendTokenLimit: 120000,
-        searchLimit: 20000,
-        vendor: 'openai',
-        name: 'OpenAI o1-mini',
-        size: 'Medium',
-        context: 128000
-    },
-    "gpt-4o-mini": {
-        default: false,
-        frontendTokenLimit: 120000,
-        searchLimit: 20000,
-        vendor: 'openai',
-        name: 'GPT 4o Mini',
-        size: 'Medium',
-        vision: {
-            type: 'image_url'
+export const loadChatModels = () => {
+    const loadedOnPremisesChatModels = loadOnPremisesChatModels();
+    if (loadedOnPremisesChatModels) ChatModels = loadedOnPremisesChatModels;
+    const models = {
+        // OpenAI
+        "gpt-4o": {
+            default: true,
+            frontendTokenLimit: 120000,
+            searchLimit: 20000,
+            vendor: 'openai',
+            name: 'GPT 4 Omni',
+            size: 'Large',
+            vision: {
+                type: 'image_url'
+            },
+            context: 128000
         },
 
-        context: 128000
-    },
+        "o1": {
+            default: false,
+            frontendTokenLimit: 120000,
+            searchLimit: 20000,
+            vendor: 'openai',
+            name: 'OpenAI o1',
+            size: 'Large',
+            context: 128000
+        },
 
-    "gpt-4-turbo": {
-        frontendTokenLimit: 120000,
-        searchLimit: 20000,
-        vendor: 'openai',
-        name: 'GPT 4 Turbo',
-        size: 'Large',
-        context: 128000
-    },
+        "o1-mini": {
+            default: false,
+            frontendTokenLimit: 120000,
+            searchLimit: 20000,
+            vendor: 'openai',
+            name: 'OpenAI o1-mini',
+            size: 'Medium',
+            context: 128000
+        },
+        "gpt-4o-mini": {
+            default: false,
+            frontendTokenLimit: 120000,
+            searchLimit: 20000,
+            vendor: 'openai',
+            name: 'GPT 4o Mini',
+            size: 'Medium',
+            vision: {
+                type: 'image_url'
+            },
 
-    "gpt-3.5-turbo": {
-        frontendTokenLimit: 15000,
-        searchLimit: 12000,
-        vendor: 'openai',
-        name: 'GPT 3.5 Turbo',
-        size: 'Medium',
+            context: 128000
+        },
 
-        context: 16000
-    },
+        "gpt-4-turbo": {
+            frontendTokenLimit: 120000,
+            searchLimit: 20000,
+            vendor: 'openai',
+            name: 'GPT 4 Turbo',
+            size: 'Large',
+            context: 128000
+        },
 
-    // Anthropic
-    "anthropic.claude-3-5-sonnet-20240620-v1:0": {
-        frontendTokenLimit: 190000,
-        vendor: 'bedrock',
-        name: "Claude 3.5 Sonnet",
-        size: 'Large',
-        context: 200000
-    },
+        "gpt-3.5-turbo": {
+            frontendTokenLimit: 15000,
+            searchLimit: 12000,
+            vendor: 'openai',
+            name: 'GPT 3.5 Turbo',
+            size: 'Medium',
 
-    "anthropic.claude-3-opus-20240229-v1:0": {
-        frontendTokenLimit: 190000,
-        vendor: 'bedrock',
-        name: "Claude 3 Opus",
-        size: 'Large',
-        context: 200000
-    },
+            context: 16000
+        },
 
-    "anthropic.claude-3-sonnet-20240229-v1:0": {
-        frontendTokenLimit: 190000,
-        vendor: 'bedrock',
-        name: "Claude 3 Sonnet",
-        size: 'Medium',
-    },
-    "anthropic.claude-3-haiku-20240307-v1:0": {
-        frontendTokenLimit: 190000,
-        vendor: 'bedrock',
-        name: "Claude 3 Haiku",
-        size: 'Small',
-        context: 200000
-    },
+        // Anthropic
+        "anthropic.claude-3-5-sonnet-20240620-v1:0": {
+            frontendTokenLimit: 190000,
+            vendor: 'bedrock',
+            name: "Claude 3.5 Sonnet",
+            size: 'Large',
+            context: 200000
+        },
+
+        "anthropic.claude-3-opus-20240229-v1:0": {
+            frontendTokenLimit: 190000,
+            vendor: 'bedrock',
+            name: "Claude 3 Opus",
+            size: 'Large',
+            context: 200000
+        },
+
+        "anthropic.claude-3-sonnet-20240229-v1:0": {
+            frontendTokenLimit: 190000,
+            vendor: 'bedrock',
+            name: "Claude 3 Sonnet",
+            size: 'Medium',
+        },
+        "anthropic.claude-3-haiku-20240307-v1:0": {
+            frontendTokenLimit: 190000,
+            vendor: 'bedrock',
+            name: "Claude 3 Haiku",
+            size: 'Small',
+            context: 200000
+        },
 
 
-    // Mistral
-    "mistral.mistral-large-2402-v1:0": {
-        frontendTokenLimit: 30000,
-        vendor: 'bedrock',
-        name: 'Mistral Large',
-        size: 'Large',
-        context: 32000
-    },
-    "mistral.mixtral-8x7b-instruct-v0:1": {
-        frontendTokenLimit: 30000,
-        vendor: 'bedrock',
-        name: 'Mixtral-8x7b',
-        size: 'Medium',
-        context: 32000
-    },
-    "mistral.mistral-7b-instruct-v0:2": {
-        frontendTokenLimit: 30000,
-        vendor: 'bedrock',
-        name: 'Mistral 7b',
-        size: 'Small',
-        context: 32000
-    },
+        // Mistral
+        "mistral.mistral-large-2402-v1:0": {
+            frontendTokenLimit: 30000,
+            vendor: 'bedrock',
+            name: 'Mistral Large',
+            size: 'Large',
+            context: 32000
+        },
+        "mistral.mixtral-8x7b-instruct-v0:1": {
+            frontendTokenLimit: 30000,
+            vendor: 'bedrock',
+            name: 'Mixtral-8x7b',
+            size: 'Medium',
+            context: 32000
+        },
+        "mistral.mistral-7b-instruct-v0:2": {
+            frontendTokenLimit: 30000,
+            vendor: 'bedrock',
+            name: 'Mistral 7b',
+            size: 'Small',
+            context: 32000
+        },
 
-    // Meta
-    "meta.llama3-70b-instruct-v1:0": {
-        frontendTokenLimit: 7500,
-        vendor: 'bedrock',
-        name: 'Llama 3 70B',
-        size: 'Medium',
-        context: 8000
-    },
-    "meta.llama3-8b-instruct-v1:0": {
-        frontendTokenLimit: 7500,
-        vendor: 'bedrock',
-        name: 'Llama 3 8B',
-        size: 'Small',
-        context: 8000
-    },
-    "meta.llama3-1-405b-instruct-v1:0": {
-        frontendTokenLimit: 120000,
-        vendor: 'bedrock',
-        name: 'Llama 3.1 405B',
-        size: 'Large',
-        context: 120000
-    },
-    "meta.llama3-1-70b-instruct-v1:0": {
-        frontendTokenLimit: 120000,
-        vendor: 'bedrock',
-        name: 'Llama 3.1 70B',
-        size: 'Medium',
-        context: 120000
+        // Meta
+        "meta.llama3-70b-instruct-v1:0": {
+            frontendTokenLimit: 7500,
+            vendor: 'bedrock',
+            name: 'Llama 3 70B',
+            size: 'Medium',
+            context: 8000
+        },
+        "meta.llama3-8b-instruct-v1:0": {
+            frontendTokenLimit: 7500,
+            vendor: 'bedrock',
+            name: 'Llama 3 8B',
+            size: 'Small',
+            context: 8000
+        },
+        "meta.llama3-1-405b-instruct-v1:0": {
+            frontendTokenLimit: 120000,
+            vendor: 'bedrock',
+            name: 'Llama 3.1 405B',
+            size: 'Large',
+            context: 120000
+        },
+        "meta.llama3-1-70b-instruct-v1:0": {
+            frontendTokenLimit: 120000,
+            vendor: 'bedrock',
+            name: 'Llama 3.1 70B',
+            size: 'Medium',
+            context: 120000
+        }
+    }
+
+    const openaiKeyDefined = typeof process.env.OPENAI_KEY !== 'undefined';
+    const bedrockKeyDefined = typeof process.env.BEDROCK_KEY !== 'undefined';
+
+
+    if (openaiKeyDefined && !bedrockKeyDefined) {
+        ChatModels = Object.fromEntries(Object.entries(models).filter(([_, model]) => model.vendor === 'openai'));
+    } else if (!openaiKeyDefined && bedrockKeyDefined) {
+        ChatModels = Object.fromEntries(Object.entries(models).filter(([_, model]) => model.vendor === 'bedrock'));
+    } else if (openaiKeyDefined && bedrockKeyDefined) {
+        ChatModels = models; // Return all models if both keys are defined
+    } else {
+        ChatModels = {}; // Return an empty object if no keys are defined
     }
 };
 

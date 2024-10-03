@@ -33,7 +33,7 @@ import {
     sha256,
     APIKeyPermissions,
     encryptMessages,
-    getChat, ChatModels, createAPIKey, getAPIKeys, deleteAPIKey, loadEnv
+    getChat, ChatModels, createAPIKey, getAPIKeys, deleteAPIKey, loadEnv, loadChatModels
 } from "./utils.mjs";
 
 async function handleDefault(event, res) {
@@ -317,6 +317,7 @@ async function handleDefault(event, res) {
         await chatStream({payload, kbData},
             // on_start
             async () => {
+                console.log(payload.messages?.length + ' messages sent to ' + payload?.model)
                 const currentId = ++count.id; // Increment and get the current ID atomically
                 await send(res, { id: currentId, content: '', role: 'assistant' });
                 sendMessages.push({ id: currentId, content: '', role: 'assistant' });
@@ -352,6 +353,7 @@ async function wsHandler(message, ws) {
 
 (async () => {
     await loadEnv();
+    await loadChatModels();
     runDevServer(handleDefault, wsHandler)
 })();
 
