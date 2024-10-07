@@ -252,7 +252,7 @@ QQIDAQAB
 }
 export let ChatModels = {};
 
-export const loadChatModels = () => {
+export const loadChatModels = async () => {
     const loadedOnPremisesChatModels = loadOnPremisesChatModels();
     if (loadedOnPremisesChatModels) ChatModels = loadedOnPremisesChatModels;
     const models = {
@@ -423,19 +423,69 @@ export const loadChatModels = () => {
         }
     }
 
+    // Fetch additional models from localhost
+    try {
+        const response = await axios.get('http://localhost:8080/models');
+        const localModels = response.data.models;
+
+        for (const vendor in localModels) {
+            if (vendor === 'meta-llama') {
+                for (const modelName in localModels[vendor]) {
+                    const modelKey = `localhost.${vendor}.${modelName}`;
+
+                    let size = 'Unknown';
+                    const sizeMatch = modelName.match(/(\d+)(B)/);
+                    if (sizeMatch) {
+                        const sizeValue = parseInt(sizeMatch[1], 10);
+                        if (sizeValue >= 7 && sizeValue < 30) {
+                            size = 'Small';
+                        } else if (sizeValue >= 30 && sizeValue < 70) {
+                            size = 'Medium';
+                        } else if (sizeValue >= 70) {
+                            size = 'Large';
+                        }
+                    }
+
+                    models[modelKey] = {
+                        frontendTokenLimit: 120000,
+                        vendor: 'localhost',
+                        name: modelName.replace(/Instruct$/, 'Inst'),
+                        size: size,
+                        context: 120000,
+                        isOnPremises: true
+                    };
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Failed to fetch models from localhost:', error.message);
+    }
+
     const openaiKeyDefined = typeof process.env.OPENAI_KEY !== 'undefined';
     const bedrockKeyDefined = typeof process.env.BEDROCK_KEY !== 'undefined';
 
-
-    if (openaiKeyDefined && !bedrockKeyDefined) {
-        ChatModels = Object.fromEntries(Object.entries(models).filter(([_, model]) => model.vendor === 'openai'));
-    } else if (!openaiKeyDefined && bedrockKeyDefined) {
-        ChatModels = Object.fromEntries(Object.entries(models).filter(([_, model]) => model.vendor === 'bedrock'));
-    } else if (openaiKeyDefined && bedrockKeyDefined) {
-        ChatModels = models; // Return all models if both keys are defined
-    } else {
-        ChatModels = {}; // Return an empty object if no keys are defined
+    // Add localhost models first
+    const localhostModels = Object.entries(models).filter(([_, model]) => model.vendor === 'localhost');
+    if (localhostModels.length > 0) {
+        ChatModels = Object.fromEntries(localhostModels);
     }
+
+    // Add OpenAI models if the key is defined
+    if (openaiKeyDefined) {
+        const openaiModels = Object.entries(models).filter(([_, model]) => model.vendor === 'openai');
+        if (openaiModels.length > 0) {
+            ChatModels = { ...ChatModels, ...Object.fromEntries(openaiModels) };
+        }
+    }
+
+    // Add Bedrock models if the key is defined
+    if (bedrockKeyDefined) {
+        const bedrockModels = Object.entries(models).filter(([_, model]) => model.vendor === 'bedrock');
+        if (bedrockModels.length > 0) {
+            ChatModels = { ...ChatModels, ...Object.fromEntries(bedrockModels) };
+        }
+    }
+
 };
 
 export function approximateTokenSize(input) {
@@ -559,6 +609,9 @@ export const chatStream = async (config, on_start, on_delta, on_stop, on_error, 
         const inputTokens = countTotalTokens(payload?.messages);
         modelResponse.on('data', async (data) => {
             const lines = data.toString().split('\n').filter(line => line.trim() !== '');
+
+            console.log(lines)
+
             for (const line of lines) {
                 partialMessage += line;
                 partialMessage = partialMessage.replace(/^data: /, '')
@@ -1673,6 +1726,12 @@ export const getVendorPayload = (payload, {model, sharedWithUsers, accountId}) =
             prompt: convertMessagesToLlamaPrompt(messages),
             max_gen_len: 2000
         }
+    } else if (chatVendor === 'localhost' && payload?.model?.startsWith('localhost.meta-llama')) {
+        return {
+            prompt: convertMessagesToLlamaPrompt(messages),
+            max_new_tokens: 2000,
+            stream: 1
+        }
     } else if (chatVendor === 'openai') {
         let model = payload?.model;
 
@@ -1732,6 +1791,7 @@ export const getVendorRequest = ({model}) => {
         }
     };
 
+    // This is how chatEndpoint should look like for localhost vendors - http://localhost:8080/pipe/meta-llama--Llama-3.1-8B-Instruct--default?stream=1
     const requests = {
         'openai': {
             ...baseRequest,
@@ -1745,13 +1805,17 @@ export const getVendorRequest = ({model}) => {
             ...baseRequest,
             chatEndpoint: 'https://pipe.openkbs.com/' + model,
         },
-        // 'network': {
-        //     ...baseRequest,
-        //     chatEndpoint: chatEndpoint,
-        // }
+        'localhost': {
+            ...baseRequest,
+            chatEndpoint: (() => {
+                const [_, company, ...modelParts] = model.split('.');
+                const modelName = modelParts.join('.');
+                return `http://localhost:8080/pipe/${company}--${modelName}--default`;
+            })(),
+        }
     };
 
-    const chatVendor = ChatModels?.[model]?.vendor
+    const chatVendor = model.startsWith('localhost.') ? 'localhost' : ChatModels?.[model]?.vendor;
 
     return requests[chatVendor];
 };
