@@ -454,6 +454,7 @@ export const loadChatModels = async () => {
                         context: 120000,
                         isOnPremises: true
                     };
+                    console.log(modelName, ' local model loaded!')
                 }
             }
         }
