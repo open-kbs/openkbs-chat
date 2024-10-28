@@ -983,7 +983,8 @@ export async function executeHandler(userCode, event, kbData, AESKey) {
             accountId,
             userCode,
             AESKey,
-            event
+            event,
+            variables: kbData?.variables && Object.keys(kbData?.variables)?.length > 0 ? kbData.variables : undefined
         });
 
         return response.data;
