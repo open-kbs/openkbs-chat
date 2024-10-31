@@ -35,6 +35,11 @@ import {
     encryptMessages,
     getChat, ChatModels, createAPIKey, getAPIKeys, deleteAPIKey, loadEnv, loadChatModels
 } from "./utils.mjs";
+import jwt from "jsonwebtoken";
+const CHAT_PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEcERRIkiUsAMvF8n5WzZ4JUppCJGS
+/u3p3yGMu1SbG2Knmu5biAC7sQk9lbGEvnWW8QwnU+GEe8dOjoDOCxchOQ==
+-----END PUBLIC KEY-----`;
 
 async function handleDefault(event, res) {
     let start = +new Date();
@@ -47,7 +52,7 @@ async function handleDefault(event, res) {
         action, title, messages, chatId, msgId, content, emojiId,
         limit, lastEvaluatedKey, predefinedAccountId, chatInstructions,
         chatIcon, chatModel, instructionSuffix, rawPrompt,
-        injectedKBData, APIKeyName, apiKey
+        injectedKBData, APIKeyName, apiKey, chatJWT
     } = params;
 
     let kbUserId = null;
@@ -73,6 +78,11 @@ async function handleDefault(event, res) {
                 await send(res, { statusCode: 403, error: 'Insufficient API Permissions' });
                 return res.end();
             }
+        } else if (chatJWT) {
+            const decoded = jwt.verify(chatJWT, CHAT_PUBLIC_KEY, { algorithms: ['ES256'] });
+            myUserId = decoded.kbUserId;
+            kbUserId = decoded.kbUserId;
+            kbId = decoded?.kbId;
         } else {
             const decoded = await verifyToken(token);
             kbUserId = decoded.kbUserId
@@ -264,7 +274,7 @@ async function handleDefault(event, res) {
         await send(res, { id: currentId, content: JSON.stringify({ _meta_type: 'EVENT_STARTED', metaEvent: 'onRequest' }), role: 'system' });
 
         try {
-            let response = await executeHandler(requestHandler, { payload }, kbData, AESKey);
+            let response = await executeHandler(requestHandler, { payload: {...payload, chatId} }, kbData, AESKey);
             const currentId = ++count.id;
             if (response?.type === 'CONTINUE') {
                 await send(res, { id: currentId, content: JSON.stringify({ type: 'CONTINUE', _meta_type: "EVENT_FINISHED", _event: 'onRequest' }), role: 'system' });
