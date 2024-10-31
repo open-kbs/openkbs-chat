@@ -339,7 +339,7 @@ async function handleDefault(event, res) {
                 // on_stop
             }, async ({inputTokens, outputTokens}) => {
                 if (!rawPrompt) {
-                    await handleOnResponse({count, res, token, payload, sendMessages, responseHandler, kbData, AESKey})
+                    await handleOnResponse({count, res, token, payload, sendMessages, responseHandler, kbData, AESKey, chatId})
                 }
                 await send(res, {done: count.id});
                 res.end();

@@ -558,7 +558,7 @@ function countTokens(text) {
     return approximateTokenSize(text)
 }
 
-export async function handleOnResponse({count, res, payload, sendMessages, responseHandler, kbData, AESKey}) {
+export async function handleOnResponse({count, res, payload, sendMessages, responseHandler, kbData, AESKey, chatId}) {
     if (hasCode(responseHandler)) {
         const currentId = ++count.id;
         await send(res, { id: currentId, content: JSON.stringify({ _meta_type: 'EVENT_STARTED', _event: 'onResponse' }), role: 'system' });
@@ -566,7 +566,8 @@ export async function handleOnResponse({count, res, payload, sendMessages, respo
             let response = await executeHandler(responseHandler, {
                 payload: {
                     ...payload,
-                    messages: [...payload.messages, {role: 'system', content: sortAndConcatenateMessages(sendMessages)}]
+                    messages: [...payload.messages, {role: 'system', content: sortAndConcatenateMessages(sendMessages)}],
+                    chatId
                 }
             }, kbData, AESKey);
 
