@@ -608,17 +608,16 @@ export const chatStream = async (config, on_start, on_delta, on_stop, on_error, 
             new AbortController()
         )
         let partialMessage = '';
+        let output = '';
         const inputTokens = countTotalTokens(payload?.messages);
         modelResponse.on('data', async (data) => {
             const lines = data.toString().split('\n').filter(line => line.trim() !== '');
-
-            console.log(lines)
-
             for (const line of lines) {
+                const outputTokens = countTokens(output)
                 partialMessage += line;
                 partialMessage = partialMessage.replace(/^data: /, '')
                 if (partialMessage === '[DONE]') {
-                    on_stop({inputTokens})
+                    on_stop({inputTokens, outputTokens})
                 } else {
                     try {
                         const parsed = JSON.parse(partialMessage);
@@ -634,6 +633,7 @@ export const chatStream = async (config, on_start, on_delta, on_stop, on_error, 
                             isFirst = false
                         }
                         partialMessage = '';
+                        output += data?.content
                     } catch (error) {
                         const validModelResponse = parseJSON(partialMessage);
                         const { choices, usage, model } = validModelResponse || {};
