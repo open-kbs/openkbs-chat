@@ -1,0 +1,45 @@
+{
+  "name": "openkbs-chat",
+  "version": "0.0.10",
+  "description": "OpenKBS - Chat Server",
+  "main": "index.mjs",
+  "scripts": {
+    "dev": "nodemon index.mjs",
+    "start": "node index.mjs",
+    "prod": "pm2 start index.mjs --name openkbs-chat --watch",
+    "prod:create": "AWS_CREATE_INFRA=1 node infra.js",
+    "prod:stop": "pm2 stop openkbs-chat",
+    "prod:restart": "pm2 restart openkbs-chat",
+    "log": "pm2 logs openkbs-chat",
+    "preprod": "AWS_REQUIRED=1 node infra.js",
+    "prestart": "LOCAL_STACK_REQUIRED=1 node infra.js",
+    "predev": "LOCAL_STACK_REQUIRED=1 node infra.js",
+    "set": "node setEnvVar.js"
+  },
+  "keywords": [],
+  "author": "OpenKBS",
+  "license": "MIT",
+  "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.621.0",
+    "@aws-sdk/client-dynamodb": "^3.658.0",
+    "@aws-sdk/client-s3": "^3.658.0",
+    "@aws-sdk/credential-provider-node": "^3.621.0",
+    "aws-sdk": "^2.1343.0",
+    "axios": "^1.4.0",
+    "bs58": "^6.0.0",
+    "chalk": "^5.3.0",
+    "cheerio": "^1.0.0-rc.12",
+    "crypto-js": "^4.1.1",
+    "decimal.js": "^10.4.3",
+    "express": "^4.18.2",
+    "figlet": "^1.7.0",
+    "jsonwebtoken": "^9.0.2",
+    "node-rsa": "^1.1.1",
+    "openai-gpt-token-counter": "1.0.3",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.7",
+    "pm2": "^5.4.2"
+  }
+}
